@@ -1,5 +1,6 @@
 const estados = ["Pendiente", "Aprobado"];
 const clases = ["pendiente", "aprobado"];
+
 const ramos = [
   { id: "integrado-de-habilidades-cientificas-para-la-tecnologia-medica", asignatura: "Integrado de Habilidades Científicas para la Tecnología Médica", semestre: 1, prerrequisitos: "" },
   { id: "antropologia", asignatura: "Antropología", semestre: 1, prerrequisitos: "" },
@@ -50,94 +51,89 @@ const ramos = [
   { id: "gestion-de-carrera-y-desarrollo-profesional", asignatura: "Gestión de Carrera y Desarrollo Profesional", semestre: 9, prerrequisitos: "" },
   { id: "taller-de-investigacion-aplicado-en-tecnologia-medica", asignatura: "Taller de Investigación Aplicado en Tecnología Médica", semestre: 9, prerrequisitos: "Haber aprobado semestre 7 y 8" },
   { id: "sistema-de-acreditacion-en-anatomia-patologica", asignatura: "Sistema de Acreditación en Anatomía Patológica", semestre: 9, prerrequisitos: "Integrado Citohistológico Clínico" },
-  { id: "internado", asignatura: "Internado", semestre: 10, prerrequisitos: "Haber aprobado todos los semestres 
-    ];
+  { id: "internado", asignatura: "Internado", semestre: 10, prerrequisitos: "Haber aprobado todos los semestres anteriores" }
+];
+const estados = ["Pendiente", "Aprobado"];
 const clases = ["pendiente", "aprobado"];
-let datosMalla = [];
-// Cargar datos desde CSV embebido
-document.addEventListener("DOMContentLoaded", async () => {
-  const response = await fetch("Malla morfo.csv");
-  const texto = await response.text();
-  const filas = texto.trim().split("\n").slice(1);
 
-  const ramosPorSemestre = {};
+// Tu malla embebida:
+const ramos = [ /* ← aquí va la lista gigante que ya te pasé arriba */ ];
 
-  filas.forEach(linea => {
-    const [asignatura, semestre, _, prerrequisitos] = linea.split(",");
-    const id = asignatura.toLowerCase().replace(/[^a-z0-9]+/g, "-").trim();
-    const sem = parseInt(semestre.trim());
+// Agrupar ramos por semestre
+const ramosPorSemestre = {};
+ramos.forEach(ramo => {
+  if (!ramosPorSemestre[ramo.semestre]) {
+    ramosPorSemestre[ramo.semestre] = [];
+  }
+  ramosPorSemestre[ramo.semestre].push({ ...ramo, estado: "Pendiente", bloqueado: false });
+});
 
-    if (!ramosPorSemestre[sem]) ramosPorSemestre[sem] = [];
-
-    ramosPorSemestre[sem].push({
-      id,
-      asignatura,
-      prerrequisitos: prerrequisitos ? prerrequisitos.trim() : "",
-      estado: localStorage.getItem(id) || "Pendiente"
-    });
+// Verificar prerrequisitos para bloquear
+function actualizarBloqueos() {
+  ramos.forEach(ramo => {
+    const div = document.getElementById(ramo.id);
+    const prereq = ramo.prerrequisitos.split(" y ").map(p => p.trim()).filter(Boolean);
+    if (prereq.length === 0) {
+      div.classList.remove("bloqueado");
+      div.dataset.bloqueado = "false";
+    } else {
+      const aprobados = prereq.every(nombre => {
+        const id = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+        const prereqDiv = document.getElementById(id);
+        return prereqDiv && prereqDiv.dataset.estado === "Aprobado";
+      });
+      if (aprobados) {
+        div.classList.remove("bloqueado");
+        div.dataset.bloqueado = "false";
+      } else {
+        div.classList.add("bloqueado");
+        div.dataset.bloqueado = "true";
+      }
+    }
   });
+}
 
-  const contenedor = document.querySelector(".malla-grid");
+// Crear interfaz
+function crearMalla() {
+  const container = document.getElementById("malla");
 
   Object.keys(ramosPorSemestre).sort((a, b) => a - b).forEach(semestre => {
     const columna = document.createElement("div");
-    columna.className = "semestre";
-    columna.innerHTML = `<h2>Semestre ${semestre}</h2>`;
-
+    columna.classList.add("semestre");
+    
+    const titulo = document.createElement("h2");
+    titulo.textContent = `Semestre ${semestre}`;
+    columna.appendChild(titulo);
+    
     ramosPorSemestre[semestre].forEach(ramo => {
       const div = document.createElement("div");
       div.id = ramo.id;
-      div.className = `ramo ${clases[estados.indexOf(ramo.estado)]}`;
-      div.setAttribute("data-prerreq", ramo.prerrequisitos);
-      div.innerHTML = `
-        <div>${ramo.asignatura}</div>
-        <div class="estado" onclick="cambiarEstado(this)">${ramo.estado}</div>
-      `;
+      div.classList.add("ramo", "pendiente");
+      div.dataset.estado = "Pendiente";
+      div.dataset.bloqueado = ramo.prerrequisitos.trim() !== "" ? "true" : "false";
+      if (div.dataset.bloqueado === "true") div.classList.add("bloqueado");
+      
+      div.textContent = ramo.asignatura;
+      div.addEventListener("click", () => {
+        if (div.dataset.bloqueado === "true") return;
+
+        const estadoActual = div.dataset.estado;
+        const nuevoEstado = estadoActual === "Pendiente" ? "Aprobado" : "Pendiente";
+        div.classList.remove(clases[estados.indexOf(estadoActual)]);
+        div.classList.add(clases[estados.indexOf(nuevoEstado)]);
+        div.dataset.estado = nuevoEstado;
+
+        actualizarBloqueos();
+      });
+
       columna.appendChild(div);
     });
 
-    contenedor.appendChild(columna);
+    container.appendChild(columna);
   });
 
-  actualizarDisponibilidad();
-});
-
-function cambiarEstado(elemento) {
-  const contenedor = elemento.parentElement;
-  let estadoActual = elemento.textContent.trim();
-  let nuevoEstado = estadoActual === "Pendiente" ? "Aprobado" : "Pendiente";
-
-  contenedor.classList.remove(...clases);
-  contenedor.classList.add(nuevoEstado.toLowerCase());
-  elemento.textContent = nuevoEstado;
-  localStorage.setItem(contenedor.id, nuevoEstado);
-
-  actualizarDisponibilidad();
+  actualizarBloqueos();
 }
 
-function actualizarDisponibilidad() {
-  document.querySelectorAll(".ramo").forEach(ramo => {
-    const prereqsTexto = ramo.getAttribute("data-prerreq");
-    if (!prereqsTexto) {
-      ramo.classList.remove("bloqueado");
-      ramo.style.opacity = "1";
-      ramo.style.pointerEvents = "auto";
-      return;
-    }
-
-    const ids = prereqsTexto.split(",").map(p =>
-      p.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")
-    );
-
-    const cumplidos = ids.every(id => localStorage.getItem(id) === "Aprobado");
-
-    if (cumplidos) {
-      ramo.classList.remove("bloqueado");
-      ramo.style.opacity = "1";
-      ramo.style.pointerEvents = "auto";
-    } else {
-      ramo.classList.add("bloqueado");
-      ramo.style.opacity = "0.5";
-      ramo.style.pointerEvents = "none";
-    }
-  });
+// Esperar que cargue el DOM
+document.addEventListener("DOMContentLoaded", crearMalla);
