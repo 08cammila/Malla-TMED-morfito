@@ -1,0 +1,77 @@
+body {
+  font-family: 'Nunito', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  color: #333;
+}
+
+.titulo {
+  font-weight: 800;
+  font-size: 28px; /* tamaño 2 puntos más grande */
+  text-align: center;
+  margin: 20px 0;
+  color: #D86DAA;
+}
+
+.malla-grid {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 20px;
+}
+
+.semestre {
+  min-width: 200px;
+  border-radius: 10px;
+  border: 2px solid #f0c0dd;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.semestre h2 {
+  background-color: #f5c1e0;
+  color: #444;
+  margin: 0;
+  padding: 10px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.ramo {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #f0c0dd;
+  transition: background-color 0.5s ease;
+}
+
+.ramo:last-child {
+  border-bottom: none;
+}
+
+.estado {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+/* Estados visuales */
+.pendiente {
+  background-color: #F8D1E0;
+}
+
+.aprobado {
+  background-color: #D86DAA;
+  color: white;
+}
+
+.bloqueado {
+  background-color: #EADCF8;
+  opacity: 0.5;
+  pointer-events: none;
+}
