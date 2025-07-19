@@ -1,6 +1,5 @@
 const estados = ["Pendiente", "Aprobado"];
 const clases = ["pendiente", "aprobado"];
-
 const ramos = [
   { id: "integrado-de-habilidades-cientificas-para-la-tecnologia-medica", asignatura: "Integrado de Habilidades Científicas para la Tecnología Médica", semestre: 1, prerrequisitos: "" },
   { id: "antropologia", asignatura: "Antropología", semestre: 1, prerrequisitos: "" },
@@ -51,11 +50,10 @@ const ramos = [
   { id: "gestion-de-carrera-y-desarrollo-profesional", asignatura: "Gestión de Carrera y Desarrollo Profesional", semestre: 9, prerrequisitos: "" },
   { id: "taller-de-investigacion-aplicado-en-tecnologia-medica", asignatura: "Taller de Investigación Aplicado en Tecnología Médica", semestre: 9, prerrequisitos: "Haber aprobado semestre 7 y 8" },
   { id: "sistema-de-acreditacion-en-anatomia-patologica", asignatura: "Sistema de Acreditación en Anatomía Patológica", semestre: 9, prerrequisitos: "Integrado Citohistológico Clínico" },
-  { id: "internado", asignatura: "Internado", semestre: 10, prerrequisitos: "Haber aprobado todos los semestres anteriores" }
-];
+  { id: "internado", asignatura: "Internado", semestre: 10, prerrequisitos: "Haber aprobado todos los semestres 
+    ];
 const clases = ["pendiente", "aprobado"];
 let datosMalla = [];
-
 // Cargar datos desde CSV embebido
 document.addEventListener("DOMContentLoaded", async () => {
   const response = await fetch("Malla morfo.csv");
@@ -143,4 +141,3 @@ function actualizarDisponibilidad() {
       ramo.style.pointerEvents = "none";
     }
   });
-}
